@@ -43,7 +43,7 @@ fn main() {
                 runner_options = runner::get_root_options(runners);
             }
             else {
-                command = runner::get_command(PathBuf::from(bin_path.clone()), args.clone());
+                command = runner::get_command(runners.clone(), args.clone());
 
                 // TODO: Create get_runner_type
 

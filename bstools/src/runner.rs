@@ -8,6 +8,7 @@ pub struct RunnerCommand {
     pub args: Vec<String>
 }
 
+#[derive(Clone)]
 pub struct Runner {
     pub name: String,
     pub path: path::PathBuf,
@@ -41,7 +42,7 @@ pub fn get_root_options(runners: Vec<Runner>) -> Vec<filesystem::DirectoryEntry>
         }
     }
 
-    results.sort_by(|a, b| b.name.cmp(&a.name));
+    results.sort_by(|a, b| a.name.cmp(&b.name));
 
     return results;
 }
@@ -68,7 +69,7 @@ pub fn get_options(runners: Vec<Runner>, args: Vec<String>) -> Option<Vec<filesy
     }
 
     if results.len() > 0 || found_valid_directory {
-        results.sort_by(|a, b| b.name.cmp(&a.name));
+        results.sort_by(|a, b| a.name.cmp(&b.name));
     
         return Some(results);
     }
@@ -93,7 +94,38 @@ fn get_options_from_path(root_path: path::PathBuf, args: Vec<String>) -> Option<
     return Some(filesystem::get_directory_entries(directory_path));
 }
 
-pub fn get_command(root_path: path::PathBuf, args: Vec<String>) -> Option<RunnerCommand> {
+pub fn get_command(runners: Vec<Runner>, args: Vec<String>) -> Option<RunnerCommand> {
+    let mut results: Vec<filesystem::DirectoryEntry> = Vec::new();
+    let mut found_command = false;
+    let mut command: Option<RunnerCommand> = None;
+
+    for runner in runners {
+        let command_option = get_command_from_path(runner.path, args.clone());
+
+        if command_option.is_some() && !found_command {
+            command = Some(command_option.unwrap());
+            found_command = true;
+        }
+        else if command_option.is_some() && found_command {
+            let mut args_string = "".to_string();
+
+            for arg in args {
+                if args_string == "" {
+                    args_string = arg;
+                }
+                else {
+                    args_string = format!("{} {}", args_string, arg);
+                }
+            }
+
+            panic!("More than one command exists for arguments '{}'. Commands must be unique.", args_string);
+        }
+    }
+
+    return command;
+}
+
+fn get_command_from_path(root_path: path::PathBuf, args: Vec<String>) -> Option<RunnerCommand> {
     let mut command_path = root_path.clone();
     let mut found_command = false;
     let mut command_args: Vec<String> = Vec::new();
