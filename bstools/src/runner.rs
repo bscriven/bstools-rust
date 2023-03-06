@@ -1,3 +1,4 @@
+use std::fs;
 use std::path;
 use std::process;
 
@@ -27,6 +28,7 @@ pub struct Runner {
 
 const RUNNER_BIN: &str = "bin";
 const RUNNER_PYTHON: &str = "python";
+const RUNNER_COMMAND: &str = "commands";
 
 const ENVIRONMENT_PYTHON: &str = "BS_PYTHON";
 
@@ -43,6 +45,13 @@ pub fn get_runners(home_path: path::PathBuf) -> Vec<Runner> {
     runners.push(Runner {
         name: RUNNER_PYTHON.to_string(),
         path: path::Path::join(home_path.as_path(), "python"),
+        command_prefix: "".to_string(),
+        command_suffix: "".to_string()
+    });
+
+    runners.push(Runner {
+        name: RUNNER_COMMAND.to_string(),
+        path: path::Path::join(home_path.as_path(), "commands"),
         command_prefix: "".to_string(),
         command_suffix: "".to_string()
     });
@@ -193,6 +202,9 @@ pub fn run_command(runner_command: RunnerCommand) {
     if runner_command.runner.name == RUNNER_PYTHON {
         run_python_command(runner_command);
     }
+    else if runner_command.runner.name == RUNNER_COMMAND {
+        run_command_command(runner_command);
+    }
     else {
         run_bin_command(runner_command);
     }
@@ -226,6 +238,58 @@ fn run_python_command(runner_command: RunnerCommand) {
     }
 
     let process_output = process::Command::new(python_path.unwrap())
+        .args(args)
+        .spawn()
+        .expect("Failed to launch process.");
+
+    let _ = process_output.wait_with_output();
+}
+
+fn run_command_command(runner_command: RunnerCommand) {   
+    let command_file_contents = fs::read_to_string(runner_command.clone().command_path)
+        .expect("Unable to read the command file.");
+
+    let mut command_string = "".to_string();
+    let mut consumed_args_count = 0;
+
+    // Replace all %s tokens in the string that was read from the command file
+    for command_part in command_file_contents.split("%s") {
+        if command_string == "" {
+            command_string = format!("{}", command_part);
+        }
+        else {
+            let arg_option = runner_command.clone().args.into_iter().nth(consumed_args_count);
+
+            if arg_option.is_none() {
+                eprintln!("The following command expects an argument that was not provided in order to replace the %s token:");
+                eprintln!("{}", command_file_contents);
+                panic!("Must provide argument to execute the command.");
+            }
+
+            command_string = format!("{}{}{}", command_string, arg_option.unwrap(), command_part);
+            consumed_args_count += 1;
+        }
+    }
+
+    // Extract the command to execute from command_string and populate the arguments
+    let mut command_to_execute: String = "".to_string();
+    let mut args: Vec<String> = Vec::new();
+
+    for command_part in command_string.split(" ") {
+        if command_to_execute == "" {
+            command_to_execute = format!("{}", command_part);
+        }
+        else {
+            args.push(command_part.to_string());
+        }
+    }
+
+    // Populate any remaining arguments that should be appended to the command
+    for arg in runner_command.args.into_iter().skip(consumed_args_count) {
+        args.push(arg.to_string());
+    }
+
+    let process_output = process::Command::new(command_to_execute)
         .args(args)
         .spawn()
         .expect("Failed to launch process.");
