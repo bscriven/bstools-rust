@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use std::process;
 
 use crate::filesystem::DirectoryEntry;
-use crate::runner::Command;
+use crate::runner::RunnerCommand;
 
 mod environment;
 mod filesystem;
@@ -28,14 +28,19 @@ fn main() {
             let bin_path = Path::join(home_path, "bin");
 
             fs::create_dir_all(data_path.clone()).expect("Failed to create data directory.");
-            fs::create_dir_all(bin_path.clone()).expect("Failed to create bin directory.");
+
+            let runners = runner::get_runners(home_path.to_path_buf());
+
+            for runner in &runners {
+                fs::create_dir_all(runner.path.clone()).expect("Failed to create bin directory.");
+            }
 
             let args: Vec<String> = std::env::args().skip(1).collect();
             let mut runner_options: Vec<DirectoryEntry> = Vec::new();
-            let mut command: Option<Command> = None;
+            let mut command: Option<RunnerCommand> = None;
 
             if args.len() == 0 {
-                runner_options = runner::get_root_options(bin_path.clone());
+                runner_options = runner::get_root_options(runners);
             }
             else {
                 command = runner::get_command(PathBuf::from(bin_path.clone()), args.clone());
@@ -43,7 +48,7 @@ fn main() {
                 // TODO: Create get_runner_type
 
                 if command.is_none() {
-                    let get_options_option = runner::get_options(bin_path, args.clone());
+                    let get_options_option = runner::get_options(runners, args.clone());
                     
                     if get_options_option.is_none() {
                         eprintln!("The command you entered is not valid. Enter a valid command and try again.");
@@ -75,7 +80,12 @@ fn main() {
                     }
                 }
                 else {
-                    eprintln!("The '{}' directory is empty. Try adding commands to the directory.", args.last().unwrap());
+                    if args.len() > 0 {
+                        eprintln!("The '{}' directory is empty. Try adding commands to the directory.", args.last().unwrap());
+                    }
+                    else {
+                        eprintln!("{} contains no commands. Try adding commands.", home_path_string);
+                    }
                 }
             }
 
