@@ -1,6 +1,5 @@
 use std::fs;
 use std::path::Path;
-use std::path::PathBuf;
 use std::process;
 
 use crate::filesystem::DirectoryEntry;
@@ -25,7 +24,6 @@ fn main() {
         Some(home_path_string) => {
             let home_path = Path::new(home_path_string.as_str());
             let data_path = Path::join(home_path, "data");
-            let bin_path = Path::join(home_path, "bin");
 
             fs::create_dir_all(data_path.clone()).expect("Failed to create data directory.");
 

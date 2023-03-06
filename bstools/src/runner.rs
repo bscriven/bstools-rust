@@ -95,7 +95,6 @@ fn get_options_from_path(root_path: path::PathBuf, args: Vec<String>) -> Option<
 }
 
 pub fn get_command(runners: Vec<Runner>, args: Vec<String>) -> Option<RunnerCommand> {
-    let mut results: Vec<filesystem::DirectoryEntry> = Vec::new();
     let mut found_command = false;
     let mut command: Option<RunnerCommand> = None;
 
