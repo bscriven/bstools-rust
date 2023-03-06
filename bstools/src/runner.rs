@@ -26,7 +26,7 @@ pub struct Runner {
     pub command_suffix: String
 }
 
-const RUNNER_BIN: &str = "bin";
+const RUNNER_EXECUTABLE: &str = "executables";
 const RUNNER_PYTHON: &str = "python";
 const RUNNER_COMMAND: &str = "commands";
 
@@ -36,8 +36,8 @@ pub fn get_runners(home_path: path::PathBuf) -> Vec<Runner> {
     let mut runners: Vec<Runner> = Vec::new();
 
     runners.push(Runner {
-        name: RUNNER_BIN.to_string(),
-        path: path::Path::join(home_path.as_path(), "bin"),
+        name: RUNNER_EXECUTABLE.to_string(),
+        path: path::Path::join(home_path.as_path(), "executables"),
         command_prefix: "".to_string(),
         command_suffix: "".to_string()
     });
@@ -249,6 +249,10 @@ fn run_command_command(runner_command: RunnerCommand) {
     let command_file_contents = fs::read_to_string(runner_command.clone().command_path)
         .expect("Unable to read the command file.");
 
+    if command_file_contents.contains("\n") {
+        panic!("Command file contains more than one line. Only single line commands are supported.");
+    }
+
     let mut command_string = "".to_string();
     let mut consumed_args_count = 0;
 
@@ -261,7 +265,7 @@ fn run_command_command(runner_command: RunnerCommand) {
             let arg_option = runner_command.clone().args.into_iter().nth(consumed_args_count);
 
             if arg_option.is_none() {
-                eprintln!("The following command expects an argument that was not provided in order to replace the %s token:");
+                eprintln!("The following command expects one or more arguments in order to replace the %s token(s):");
                 eprintln!("{}", command_file_contents);
                 panic!("Must provide argument to execute the command.");
             }
