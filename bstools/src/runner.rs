@@ -2,6 +2,7 @@ use std::path;
 use std::process;
 
 use crate::filesystem;
+use crate::environment;
 
 #[derive(Clone)]
 pub struct RunnerCommand {
@@ -25,6 +26,9 @@ pub struct Runner {
 }
 
 const RUNNER_BIN: &str = "bin";
+const RUNNER_PYTHON: &str = "python";
+
+const ENVIRONMENT_PYTHON: &str = "BS_PYTHON";
 
 pub fn get_runners(home_path: path::PathBuf) -> Vec<Runner> {
     let mut runners: Vec<Runner> = Vec::new();
@@ -32,6 +36,13 @@ pub fn get_runners(home_path: path::PathBuf) -> Vec<Runner> {
     runners.push(Runner {
         name: RUNNER_BIN.to_string(),
         path: path::Path::join(home_path.as_path(), "bin"),
+        command_prefix: "".to_string(),
+        command_suffix: "".to_string()
+    });
+
+    runners.push(Runner {
+        name: RUNNER_PYTHON.to_string(),
+        path: path::Path::join(home_path.as_path(), "python"),
         command_prefix: "".to_string(),
         command_suffix: "".to_string()
     });
@@ -178,14 +189,44 @@ fn get_command_from_path(root_path: path::PathBuf, args: Vec<String>) -> Option<
     return None;
 }
 
-pub fn run_command(runner_command: RunnerCommand) {    
-    run_bin_command(runner_command);
+pub fn run_command(runner_command: RunnerCommand) {
+    if runner_command.runner.name == RUNNER_PYTHON {
+        run_python_command(runner_command);
+    }
+    else {
+        run_bin_command(runner_command);
+    }
 }
 
 fn run_bin_command(runner_command: RunnerCommand) {   
     let command_string = format!("{}", runner_command.command_path.as_path().display());
     let process_output = process::Command::new(command_string)
         .args(runner_command.args)
+        .spawn()
+        .expect("Failed to launch process.");
+
+    let _ = process_output.wait_with_output();
+}
+
+fn run_python_command(runner_command: RunnerCommand) {
+    let python_path = environment::get_environment_variable(ENVIRONMENT_PYTHON);
+
+    if python_path.is_none() {
+        eprintln!("Mandatory environment variable '{}' does not exist. Set the environment variable and try again.", ENVIRONMENT_PYTHON);
+        eprintln!("'{}' must contain the path to the Python executable to use when executing commands.", ENVIRONMENT_PYTHON);
+        panic!("Mandatory environment variable does not exist.");
+    }
+
+    let mut args: Vec<String> = Vec::new();
+
+    args.push(runner_command.command_path.as_os_str().to_string_lossy().to_string());
+
+    for arg in runner_command.args {
+        args.push(arg);
+    }
+
+    let process_output = process::Command::new(python_path.unwrap())
+        .args(args)
         .spawn()
         .expect("Failed to launch process.");
 
