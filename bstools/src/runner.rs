@@ -1,4 +1,5 @@
 use std::path;
+use std::process;
 
 use crate::filesystem;
 
@@ -23,11 +24,13 @@ pub struct Runner {
     pub command_suffix: String
 }
 
+const RUNNER_BIN: &str = "bin";
+
 pub fn get_runners(home_path: path::PathBuf) -> Vec<Runner> {
     let mut runners: Vec<Runner> = Vec::new();
 
     runners.push(Runner {
-        name: "bin".to_string(),
+        name: RUNNER_BIN.to_string(),
         path: path::Path::join(home_path.as_path(), "bin"),
         command_prefix: "".to_string(),
         command_suffix: "".to_string()
@@ -173,4 +176,18 @@ fn get_command_from_path(root_path: path::PathBuf, args: Vec<String>) -> Option<
     }
 
     return None;
+}
+
+pub fn run_command(runner_command: RunnerCommand) {    
+    run_bin_command(runner_command);
+}
+
+fn run_bin_command(runner_command: RunnerCommand) {   
+    let command_string = format!("{}", runner_command.command_path.as_path().display());
+    let process_output = process::Command::new(command_string)
+        .args(runner_command.args)
+        .spawn()
+        .expect("Failed to launch process.");
+
+    let _ = process_output.wait_with_output();
 }

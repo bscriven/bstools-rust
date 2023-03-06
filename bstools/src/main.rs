@@ -58,15 +58,7 @@ fn main() {
             }
 
             if command.is_some() {
-                // TODO: Implement run_command
-                let unwrapped_command = command.unwrap();
-                let command_string = format!("{}", unwrapped_command.command_path.as_path().display());
-                let process_output = process::Command::new(command_string)
-                    .args(&unwrapped_command.args)
-                    .spawn()
-                    .expect("Failed to launch process.");
-
-                let _ = process_output.wait_with_output();
+                runner::run_command(command.unwrap());
             }
             else {
                 if runner_options.len() > 0 {
