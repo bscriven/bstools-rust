@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 use std::process;
 
-use crate::filesystem::DirectoryEntry;
+use crate::filesystem::FileSystemEntry;
 use crate::runner::RunnerCommand;
 
 mod environment;
@@ -34,7 +34,7 @@ fn main() {
             }
 
             let args: Vec<String> = std::env::args().skip(1).collect();
-            let mut runner_options: Vec<DirectoryEntry> = Vec::new();
+            let mut runner_options: Vec<FileSystemEntry> = Vec::new();
             let mut command: Option<RunnerCommand> = None;
 
             if args.len() == 0 {
@@ -42,8 +42,6 @@ fn main() {
             }
             else {
                 command = runner::get_command(runners.clone(), args.clone());
-
-                // TODO: Create get_runner_type
 
                 if command.is_none() {
                     let get_options_option = runner::get_options(runners, args.clone());
@@ -60,6 +58,7 @@ fn main() {
             }
 
             if command.is_some() {
+                // TODO: Implement run_command
                 let unwrapped_command = command.unwrap();
                 let command_string = format!("{}", unwrapped_command.command_path.as_path().display());
                 let process_output = process::Command::new(command_string)
@@ -86,8 +85,6 @@ fn main() {
                     }
                 }
             }
-
-            // TODO: Create bin_runner
         }
     }
 }
