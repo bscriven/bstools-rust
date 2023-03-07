@@ -2,6 +2,7 @@ use std::fs;
 use std::path;
 use std::process;
 
+use crate::constants;
 use crate::filesystem;
 use crate::environment;
 
@@ -26,41 +27,33 @@ pub struct Runner {
     pub command_suffix: String
 }
 
-const RUNNER_EXECUTABLE: &str = "executables";
-const RUNNER_PYTHON: &str = "python";
-const RUNNER_COMMAND: &str = "commands";
-const RUNNER_JAVA: &str = "java";
-
-const ENVIRONMENT_PYTHON: &str = "BS_PYTHON";
-const ENVIRONMENT_JAVA: &str = "BS_JAVA";
-
 pub fn get_runners(home_path: path::PathBuf) -> Vec<Runner> {
     let mut runners: Vec<Runner> = Vec::new();
 
     runners.push(Runner {
-        name: RUNNER_EXECUTABLE.to_string(),
-        path: path::Path::join(home_path.as_path(), RUNNER_EXECUTABLE),
+        name: constants::RUNNER_EXECUTABLE.to_string(),
+        path: path::Path::join(home_path.as_path(), constants::RUNNER_EXECUTABLE),
         command_prefix: "".to_string(),
         command_suffix: "".to_string()
     });
 
     runners.push(Runner {
-        name: RUNNER_PYTHON.to_string(),
-        path: path::Path::join(home_path.as_path(), RUNNER_PYTHON),
+        name: constants::RUNNER_PYTHON.to_string(),
+        path: path::Path::join(home_path.as_path(), constants::RUNNER_PYTHON),
         command_prefix: "".to_string(),
         command_suffix: "".to_string()
     });
 
     runners.push(Runner {
-        name: RUNNER_COMMAND.to_string(),
-        path: path::Path::join(home_path.as_path(), RUNNER_COMMAND),
+        name: constants::RUNNER_COMMAND.to_string(),
+        path: path::Path::join(home_path.as_path(), constants::RUNNER_COMMAND),
         command_prefix: "".to_string(),
         command_suffix: "".to_string()
     });
 
     runners.push(Runner {
-        name: RUNNER_JAVA.to_string(),
-        path: path::Path::join(home_path.as_path(), RUNNER_JAVA),
+        name: constants::RUNNER_JAVA.to_string(),
+        path: path::Path::join(home_path.as_path(), constants::RUNNER_JAVA),
         command_prefix: "".to_string(),
         command_suffix: "".to_string()
     });
@@ -208,13 +201,13 @@ fn get_command_from_path(root_path: path::PathBuf, args: Vec<String>) -> Option<
 }
 
 pub fn run_command(runner_command: RunnerCommand) {
-    if runner_command.runner.name == RUNNER_PYTHON {
+    if runner_command.runner.name == constants::RUNNER_PYTHON {
         run_python_command(runner_command);
     }
-    else if runner_command.runner.name == RUNNER_COMMAND {
+    else if runner_command.runner.name == constants::RUNNER_COMMAND {
         run_command_command(runner_command);
     }
-    else if runner_command.runner.name == RUNNER_JAVA {
+    else if runner_command.runner.name == constants::RUNNER_JAVA {
         run_java_command(runner_command);
     }
     else {
@@ -233,11 +226,11 @@ fn run_bin_command(runner_command: RunnerCommand) {
 }
 
 fn run_python_command(runner_command: RunnerCommand) {
-    let python_path = environment::get_environment_variable(ENVIRONMENT_PYTHON);
+    let python_path = environment::get_environment_variable(constants::ENVIRONMENT_PYTHON);
 
     if python_path.is_none() {
-        eprintln!("Mandatory environment variable '{}' does not exist. Set the environment variable and try again.", ENVIRONMENT_PYTHON);
-        eprintln!("'{}' must contain the path to the Python executable to use when executing commands.", ENVIRONMENT_PYTHON);
+        eprintln!("Mandatory environment variable '{}' does not exist. Set the environment variable and try again.", constants::ENVIRONMENT_PYTHON);
+        eprintln!("'{}' must contain the path to the Python executable to use when executing commands.", constants::ENVIRONMENT_PYTHON);
         panic!("Mandatory environment variable does not exist.");
     }
 
@@ -316,11 +309,11 @@ fn run_command_command(runner_command: RunnerCommand) {
 
 
 fn run_java_command(runner_command: RunnerCommand) {
-    let java_path = environment::get_environment_variable(ENVIRONMENT_JAVA);
+    let java_path = environment::get_environment_variable(constants::ENVIRONMENT_JAVA);
 
     if java_path.is_none() {
-        eprintln!("Mandatory environment variable '{}' does not exist. Set the environment variable and try again.", ENVIRONMENT_JAVA);
-        eprintln!("'{}' must contain the path to the Java executable to use when executing commands.", ENVIRONMENT_JAVA);
+        eprintln!("Mandatory environment variable '{}' does not exist. Set the environment variable and try again.", constants::ENVIRONMENT_JAVA);
+        eprintln!("'{}' must contain the path to the Java executable to use when executing commands.", constants::ENVIRONMENT_JAVA);
         panic!("Mandatory environment variable does not exist.");
     }
 

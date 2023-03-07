@@ -5,18 +5,18 @@ use std::process;
 use crate::filesystem::FileSystemEntry;
 use crate::runner::RunnerCommand;
 
+mod constants;
 mod environment;
 mod filesystem;
 mod runner;
 
 fn main() {
-    const HOME_ENVIRONMENT_VARIABLE: &str = "BS_HOME";
-    let home_path_option = environment::get_environment_variable(HOME_ENVIRONMENT_VARIABLE);
+    let home_path_option = environment::get_environment_variable(constants::ENVIRONMENT_HOME);
 
     match home_path_option {
         None => {
-            eprintln!("Mandatory environment variable '{}' does not exist. Set the environment variable and try again.", HOME_ENVIRONMENT_VARIABLE);
-            eprintln!("'{}' must contain a directory path. Within the directory, commands and data will be stored.", HOME_ENVIRONMENT_VARIABLE);
+            eprintln!("Mandatory environment variable '{}' does not exist. Set the environment variable and try again.", constants::ENVIRONMENT_HOME);
+            eprintln!("'{}' must contain a directory path. Within the directory, commands and data will be stored.", constants::ENVIRONMENT_HOME);
             eprintln!("If this is a new installation, an empty directory may be used.");
 
             process::exit(1);
