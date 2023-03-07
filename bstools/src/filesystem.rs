@@ -1,12 +1,7 @@
-use std::ffi;
 use std::fs;
 use std::path;
 
-pub struct FileSystemEntry {
-    pub name: ffi::OsString,
-    pub path: path::PathBuf,
-    pub is_directory: bool
-}
+use crate::models::FileSystemEntry;
 
 pub fn get_directory_entries(path: path::PathBuf) -> Vec<FileSystemEntry> {
     let path_results = fs::read_dir(path).unwrap();

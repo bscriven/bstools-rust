@@ -3,29 +3,12 @@ use std::path;
 use std::process;
 
 use crate::constants;
-use crate::filesystem;
 use crate::environment;
-
-#[derive(Clone)]
-pub struct RunnerCommand {
-    pub command_path: path::PathBuf,
-    pub args: Vec<String>,
-    pub runner: Runner
-}
-
-#[derive(Clone)]
-pub struct CommandDetails {
-    pub command_path: path::PathBuf,
-    pub args: Vec<String>,
-}
-
-#[derive(Clone)]
-pub struct Runner {
-    pub name: String,
-    pub path: path::PathBuf,
-    pub command_prefix: String,
-    pub command_suffix: String
-}
+use crate::filesystem;
+use crate::models::CommandDetails;
+use crate::models::FileSystemEntry;
+use crate::models::Runner;
+use crate::models::RunnerCommand;
 
 pub fn get_runners(home_path: path::PathBuf) -> Vec<Runner> {
     let mut runners: Vec<Runner> = Vec::new();
@@ -61,8 +44,8 @@ pub fn get_runners(home_path: path::PathBuf) -> Vec<Runner> {
     return runners;
 }
 
-pub fn get_root_options(runners: Vec<Runner>) -> Vec<filesystem::FileSystemEntry> {
-    let mut results: Vec<filesystem::FileSystemEntry> = Vec::new();
+pub fn get_root_options(runners: Vec<Runner>) -> Vec<FileSystemEntry> {
+    let mut results: Vec<FileSystemEntry> = Vec::new();
 
     for runner in runners {
         let entries = get_root_options_from_path(runner.path);
@@ -77,12 +60,12 @@ pub fn get_root_options(runners: Vec<Runner>) -> Vec<filesystem::FileSystemEntry
     return results;
 }
 
-fn get_root_options_from_path(root_path: path::PathBuf) -> Vec<filesystem::FileSystemEntry> {
+fn get_root_options_from_path(root_path: path::PathBuf) -> Vec<FileSystemEntry> {
     return filesystem::get_directory_entries(root_path);
 }
 
-pub fn get_options(runners: Vec<Runner>, args: Vec<String>) -> Option<Vec<filesystem::FileSystemEntry>> {
-    let mut results: Vec<filesystem::FileSystemEntry> = Vec::new();
+pub fn get_options(runners: Vec<Runner>, args: Vec<String>) -> Option<Vec<FileSystemEntry>> {
+    let mut results: Vec<FileSystemEntry> = Vec::new();
     let mut found_valid_directory = false;
 
     for runner in runners {
@@ -108,7 +91,7 @@ pub fn get_options(runners: Vec<Runner>, args: Vec<String>) -> Option<Vec<filesy
     }
 }
 
-fn get_options_from_path(root_path: path::PathBuf, args: Vec<String>) -> Option<Vec<filesystem::FileSystemEntry>> {
+fn get_options_from_path(root_path: path::PathBuf, args: Vec<String>) -> Option<Vec<FileSystemEntry>> {
     let mut directory_path = root_path.clone();
 
     for arg in args {

@@ -2,13 +2,14 @@ use std::fs;
 use std::path::Path;
 use std::process;
 
-use crate::filesystem::FileSystemEntry;
-use crate::runner::RunnerCommand;
-
 mod constants;
 mod environment;
+mod models;
 mod filesystem;
 mod runner;
+
+use crate::models::FileSystemEntry;
+use crate::models::RunnerCommand;
 
 fn main() {
     let home_path_option = environment::get_environment_variable(constants::ENVIRONMENT_HOME);
