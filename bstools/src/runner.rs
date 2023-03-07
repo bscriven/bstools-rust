@@ -3,7 +3,7 @@ use std::path;
 use std::process;
 
 use crate::constants;
-use crate::environment;
+use crate::configuration;
 use crate::filesystem;
 use crate::models::CommandDetails;
 use crate::models::FileSystemEntry;
@@ -209,7 +209,7 @@ fn run_bin_command(runner_command: RunnerCommand) {
 }
 
 fn run_python_command(runner_command: RunnerCommand) {
-    let python_path = environment::get_environment_variable(constants::ENVIRONMENT_PYTHON);
+    let python_path = configuration::get_environment_variable(constants::ENVIRONMENT_PYTHON);
 
     if python_path.is_none() {
         eprintln!("Mandatory environment variable '{}' does not exist. Set the environment variable and try again.", constants::ENVIRONMENT_PYTHON);
@@ -292,7 +292,7 @@ fn run_command_command(runner_command: RunnerCommand) {
 
 
 fn run_java_command(runner_command: RunnerCommand) {
-    let java_path = environment::get_environment_variable(constants::ENVIRONMENT_JAVA);
+    let java_path = configuration::get_environment_variable(constants::ENVIRONMENT_JAVA);
 
     if java_path.is_none() {
         eprintln!("Mandatory environment variable '{}' does not exist. Set the environment variable and try again.", constants::ENVIRONMENT_JAVA);
