@@ -1,9 +1,9 @@
 use std::fs;
-use std::path;
+use std::path::PathBuf;
 
 use crate::models::FileSystemEntry;
 
-pub fn get_directory_entries(path: path::PathBuf) -> Vec<FileSystemEntry> {
+pub fn get_directory_entries(path: PathBuf) -> Vec<FileSystemEntry> {
     let path_results = fs::read_dir(path).unwrap();
     let mut entries: Vec<FileSystemEntry> = Vec::new(); 
 
@@ -21,7 +21,7 @@ pub fn get_directory_entries(path: path::PathBuf) -> Vec<FileSystemEntry> {
     return entries;
 }
 
-pub fn get_entry(path: path::PathBuf) -> Option<FileSystemEntry> {
+pub fn get_entry(path: PathBuf) -> Option<FileSystemEntry> {
     let is_existing = path.as_path().exists();
     
     if is_existing {
@@ -39,4 +39,11 @@ pub fn get_entry(path: path::PathBuf) -> Option<FileSystemEntry> {
     else {
         return None;
     }
+}
+
+pub fn create_directories(path: PathBuf) {
+    let cloned_path = path.clone();
+    let file_name = cloned_path.file_name().unwrap().to_string_lossy();
+
+    fs::create_dir_all(path).expect(format!("Failed to create {} directory.", file_name).as_str());
 }

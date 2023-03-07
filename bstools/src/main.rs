@@ -1,4 +1,3 @@
-use std::fs;
 use std::path::Path;
 use std::process;
 
@@ -26,12 +25,12 @@ fn main() {
             let home_path = Path::new(home_path_string.as_str());
             let data_path = Path::join(home_path, "data");
 
-            fs::create_dir_all(data_path.clone()).expect("Failed to create data directory.");
+            filesystem::create_directories(data_path.clone());
 
             let runners = runner::get_runners(home_path.to_path_buf());
 
             for runner in &runners {
-                fs::create_dir_all(runner.path.clone()).expect("Failed to create bin directory.");
+                filesystem::create_directories(runner.path.clone());
             }
 
             let args: Vec<String> = std::env::args().skip(1).collect();
