@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 use crate::models::FileSystemEntry;
 
+/// Gets all entries from the specified directory path. Entries consist of files and subdirectories.
 pub fn get_directory_entries(path: PathBuf) -> Vec<FileSystemEntry> {
     let path_results = fs::read_dir(path).unwrap();
     let mut entries: Vec<FileSystemEntry> = Vec::new(); 
@@ -21,6 +22,7 @@ pub fn get_directory_entries(path: PathBuf) -> Vec<FileSystemEntry> {
     return entries;
 }
 
+/// Gets a single entry from the specified path. The entry may be a file or a directory.
 pub fn get_entry(path: PathBuf) -> Option<FileSystemEntry> {
     let is_existing = path.as_path().exists();
     
@@ -41,6 +43,7 @@ pub fn get_entry(path: PathBuf) -> Option<FileSystemEntry> {
     }
 }
 
+/// Creates all directories included in the specified path.
 pub fn create_directories(path: PathBuf) {
     let cloned_path = path.clone();
     let file_name = cloned_path.file_name().unwrap().to_string_lossy();

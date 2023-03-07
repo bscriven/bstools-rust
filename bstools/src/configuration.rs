@@ -8,6 +8,7 @@ use crate::constants;
 use crate::filesystem;
 use crate::runner;
 
+/// Gets an environment variable from the OS.
 pub fn get_environment_variable(variable_name: &str) -> Option<String> {
     match env::var(variable_name) {
         Ok(value) => Some(value),
@@ -15,6 +16,9 @@ pub fn get_environment_variable(variable_name: &str) -> Option<String> {
     }
 }
 
+/// Verifies that the BS_HOME environment variable is set and that all required subdirectories are created within BS_HOME.
+/// 
+/// The directory path for BS_HOME is returned if there are no errors.
 pub fn verify_environment_configured_and_get_home_path() -> Result<String, Box<dyn Error>> {
     let home_path_option = configuration::get_environment_variable(constants::ENVIRONMENT_HOME);
 

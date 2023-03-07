@@ -10,6 +10,7 @@ use crate::models::FileSystemEntry;
 use crate::models::Runner;
 use crate::models::RunnerCommand;
 
+/// Gets a list of all runners that are supported by bstools.
 pub fn get_runners(home_path: path::PathBuf) -> Vec<Runner> {
     let mut runners: Vec<Runner> = Vec::new();
 
@@ -44,11 +45,14 @@ pub fn get_runners(home_path: path::PathBuf) -> Vec<Runner> {
     return runners;
 }
 
+/// Gets a list of all options that are available at the root level. Options in all runner directories are searched.
+/// 
+/// Options may include commands to execute as well as directories (which contain commands to execute).
 pub fn get_root_options(runners: Vec<Runner>) -> Vec<FileSystemEntry> {
     let mut results: Vec<FileSystemEntry> = Vec::new();
 
     for runner in runners {
-        let entries = get_root_options_from_path(runner.path);
+        let entries = filesystem::get_directory_entries(runner.path);
 
         for entry in entries {
             results.push(entry);
@@ -60,10 +64,9 @@ pub fn get_root_options(runners: Vec<Runner>) -> Vec<FileSystemEntry> {
     return results;
 }
 
-fn get_root_options_from_path(root_path: path::PathBuf) -> Vec<FileSystemEntry> {
-    return filesystem::get_directory_entries(root_path);
-}
-
+/// Gets a list of all options that are available given the specified arguments. Options in all runner directories are searched.
+/// 
+/// Options may include commands to execute as well as directories (which contain commands to execute).
 pub fn get_options(runners: Vec<Runner>, args: Vec<String>) -> Option<Vec<FileSystemEntry>> {
     let mut results: Vec<FileSystemEntry> = Vec::new();
     let mut found_valid_directory = false;
@@ -91,6 +94,9 @@ pub fn get_options(runners: Vec<Runner>, args: Vec<String>) -> Option<Vec<FileSy
     }
 }
 
+/// Gets a list of all options that are available at a specific path.
+/// 
+/// Specific paths may be /[BS_HOME]/python/example, /[BS_HOME]/executables, etc.
 fn get_options_from_path(root_path: path::PathBuf, args: Vec<String>) -> Option<Vec<FileSystemEntry>> {
     let mut directory_path = root_path.clone();
 
@@ -107,6 +113,11 @@ fn get_options_from_path(root_path: path::PathBuf, args: Vec<String>) -> Option<
     return Some(filesystem::get_directory_entries(directory_path));
 }
 
+/// Attempts to get a command from one of the runner directories using the provided arguments.
+/// 
+/// If no command is found, None is returned.
+/// 
+/// Validation is performed to ensure that the command is unique.
 pub fn get_command(runners: Vec<Runner>, args: Vec<String>) -> Option<RunnerCommand> {
     let mut found_command = false;
     let mut command: Option<RunnerCommand> = None;
@@ -148,6 +159,9 @@ pub fn get_command(runners: Vec<Runner>, args: Vec<String>) -> Option<RunnerComm
     return command;
 }
 
+/// Attempts to get a command from a specific path using the provided arguments.
+/// 
+/// Specific paths may be /[BS_HOME]/python/example, /[BS_HOME]/executables, etc.
 fn get_command_from_path(root_path: path::PathBuf, args: Vec<String>) -> Option<CommandDetails> {
     let mut command_path = root_path.clone();
     let mut found_command = false;
@@ -183,22 +197,24 @@ fn get_command_from_path(root_path: path::PathBuf, args: Vec<String>) -> Option<
     return None;
 }
 
+/// Runs a command using the appropriate runner.
 pub fn run_command(runner_command: RunnerCommand) {
     if runner_command.runner.name == constants::RUNNER_PYTHON {
-        run_python_command(runner_command);
+        run_python(runner_command);
     }
     else if runner_command.runner.name == constants::RUNNER_COMMAND {
-        run_command_command(runner_command);
+        run_command_alias(runner_command);
     }
     else if runner_command.runner.name == constants::RUNNER_JAVA {
-        run_java_command(runner_command);
+        run_java(runner_command);
     }
     else {
-        run_bin_command(runner_command);
+        run_executable(runner_command);
     }
 }
 
-fn run_bin_command(runner_command: RunnerCommand) {   
+/// Runs an executable.
+fn run_executable(runner_command: RunnerCommand) {   
     let command_string = format!("{}", runner_command.command_path.as_path().display());
     let process_output = process::Command::new(command_string)
         .args(runner_command.args)
@@ -208,10 +224,12 @@ fn run_bin_command(runner_command: RunnerCommand) {
     let _ = process_output.wait_with_output();
 }
 
-fn run_python_command(runner_command: RunnerCommand) {
+/// Runs a Python script.
+fn run_python(runner_command: RunnerCommand) {
     let python_path = configuration::get_environment_variable(constants::ENVIRONMENT_PYTHON);
 
     if python_path.is_none() {
+        // Panic if the environment variable with the path to the Python executable is not set.
         eprintln!("Mandatory environment variable '{}' does not exist. Set the environment variable and try again.", constants::ENVIRONMENT_PYTHON);
         eprintln!("'{}' must contain the path to the Python executable to use when executing commands.", constants::ENVIRONMENT_PYTHON);
         panic!("Mandatory environment variable does not exist.");
@@ -233,7 +251,8 @@ fn run_python_command(runner_command: RunnerCommand) {
     let _ = process_output.wait_with_output();
 }
 
-fn run_command_command(runner_command: RunnerCommand) {   
+/// Runs a command alias.
+fn run_command_alias(runner_command: RunnerCommand) {   
     let command_file_contents = fs::read_to_string(runner_command.clone().command_path)
         .expect("Unable to read the command file.");
 
@@ -289,12 +308,12 @@ fn run_command_command(runner_command: RunnerCommand) {
     let _ = process_output.wait_with_output();
 }
 
-
-
-fn run_java_command(runner_command: RunnerCommand) {
+/// Runs an executable Java JAR.
+fn run_java(runner_command: RunnerCommand) {
     let java_path = configuration::get_environment_variable(constants::ENVIRONMENT_JAVA);
 
     if java_path.is_none() {
+        // Panic if the environment variable with the path to the Java executable is not set.
         eprintln!("Mandatory environment variable '{}' does not exist. Set the environment variable and try again.", constants::ENVIRONMENT_JAVA);
         eprintln!("'{}' must contain the path to the Java executable to use when executing commands.", constants::ENVIRONMENT_JAVA);
         panic!("Mandatory environment variable does not exist.");
