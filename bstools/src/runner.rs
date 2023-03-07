@@ -29,29 +29,38 @@ pub struct Runner {
 const RUNNER_EXECUTABLE: &str = "executables";
 const RUNNER_PYTHON: &str = "python";
 const RUNNER_COMMAND: &str = "commands";
+const RUNNER_JAVA: &str = "java";
 
 const ENVIRONMENT_PYTHON: &str = "BS_PYTHON";
+const ENVIRONMENT_JAVA: &str = "BS_JAVA";
 
 pub fn get_runners(home_path: path::PathBuf) -> Vec<Runner> {
     let mut runners: Vec<Runner> = Vec::new();
 
     runners.push(Runner {
         name: RUNNER_EXECUTABLE.to_string(),
-        path: path::Path::join(home_path.as_path(), "executables"),
+        path: path::Path::join(home_path.as_path(), RUNNER_EXECUTABLE),
         command_prefix: "".to_string(),
         command_suffix: "".to_string()
     });
 
     runners.push(Runner {
         name: RUNNER_PYTHON.to_string(),
-        path: path::Path::join(home_path.as_path(), "python"),
+        path: path::Path::join(home_path.as_path(), RUNNER_PYTHON),
         command_prefix: "".to_string(),
         command_suffix: "".to_string()
     });
 
     runners.push(Runner {
         name: RUNNER_COMMAND.to_string(),
-        path: path::Path::join(home_path.as_path(), "commands"),
+        path: path::Path::join(home_path.as_path(), RUNNER_COMMAND),
+        command_prefix: "".to_string(),
+        command_suffix: "".to_string()
+    });
+
+    runners.push(Runner {
+        name: RUNNER_JAVA.to_string(),
+        path: path::Path::join(home_path.as_path(), RUNNER_JAVA),
         command_prefix: "".to_string(),
         command_suffix: "".to_string()
     });
@@ -205,6 +214,9 @@ pub fn run_command(runner_command: RunnerCommand) {
     else if runner_command.runner.name == RUNNER_COMMAND {
         run_command_command(runner_command);
     }
+    else if runner_command.runner.name == RUNNER_JAVA {
+        run_java_command(runner_command);
+    }
     else {
         run_bin_command(runner_command);
     }
@@ -294,6 +306,34 @@ fn run_command_command(runner_command: RunnerCommand) {
     }
 
     let process_output = process::Command::new(command_to_execute)
+        .args(args)
+        .spawn()
+        .expect("Failed to launch process.");
+
+    let _ = process_output.wait_with_output();
+}
+
+
+
+fn run_java_command(runner_command: RunnerCommand) {
+    let java_path = environment::get_environment_variable(ENVIRONMENT_JAVA);
+
+    if java_path.is_none() {
+        eprintln!("Mandatory environment variable '{}' does not exist. Set the environment variable and try again.", ENVIRONMENT_JAVA);
+        eprintln!("'{}' must contain the path to the Java executable to use when executing commands.", ENVIRONMENT_JAVA);
+        panic!("Mandatory environment variable does not exist.");
+    }
+
+    let mut args: Vec<String> = Vec::new();
+
+    args.push("-jar".to_string());
+    args.push(runner_command.command_path.as_os_str().to_string_lossy().to_string());
+
+    for arg in runner_command.args {
+        args.push(arg);
+    }
+
+    let process_output = process::Command::new(java_path.unwrap())
         .args(args)
         .spawn()
         .expect("Failed to launch process.");

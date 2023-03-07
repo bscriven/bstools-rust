@@ -4,6 +4,7 @@ bstools is a command line utility that allows other command line utilities and s
 - Execute other executables
 - Create easy to remember aliases for other commands
 - Execute Python scripts
+- Execute Java JAR files
 - Pass arguments to commands
 
 Commands can be grouped into logical categories. For example, if you were to create a script called `generate_uuid.py` and place it in a directory called `dev` within the `python` directory of the bstools home directory, it would be possible to execute the script with the following command:
@@ -31,6 +32,8 @@ The BS_HOME environment variable must contain a path to a directory where comman
   - Stores data to be used by other command line utilities.
 - executables
   - Stores executable files.
+- java
+  - Stores executable JAR files.
 - python
   - Stores Python scripts.
 
@@ -78,6 +81,20 @@ bstools could execute `example.exe` with the following command:
 
 `bs tools example.exe -v -s test1 test2`
 
+### Java
+
+The `java` directory stores executable JAR files to be executed by bstools. For example, say the following file existed at:
+
+`[BS-HOME]/java/tools/doSomething.jar`
+
+bstools could execute `doSomething.jar` with the following command:
+
+`bs tools doSomething.jar`
+
+If `doSomething.jar` accepted optional arguments, they could be provided like so:
+
+`bs tools doSomething.jar -v testIt`
+
 ### Python
 
 The `python` directory stores Python scripts to be executed by bstools. For example, say the following Python script existed at:
@@ -101,4 +118,4 @@ Executing `bs dev` would display `generate_uuid.py` as an option.
 
 Executing `bs network` would display `ping_alias` as an option.
 
-Executing `bs tools` would display `example.exe` as an option.
+Executing `bs tools` would display `example.exe` and `doSomething.jar` as options.
